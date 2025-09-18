@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaGithub, FaLinkedin, FaFileAlt } from 'react-icons/fa';
-import Project from './components/Project';
 import GridBackground from './components/GridBackground';
+import Intro from './components/Intro';
+import About from './components/About';
+import ProjectsSection from './components/ProjectsSection';
+import Header from './components/Header';
 
 // Main App component
 const App = () => {
@@ -12,7 +15,10 @@ const App = () => {
 
   // State for fade-in animations
   const [isAboutVisible, setIsAboutVisible] = useState(false);
-  const [projectVisibility, setProjectVisibility] = useState(Array(5).fill(false));
+  const aboutRef = useRef(null);
+  const [introHidden, setIntroHidden] = useState(false);
+  const projectsRef = useRef(null);
+  const [isProjectsVisible, setIsProjectsVisible] = useState(false);
 
   // The phrases for the subtitle to be typed out
   const subtitlePhrases = [
@@ -48,176 +54,133 @@ const App = () => {
 
   // Logic for fade-in-on-scroll animation
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.2, // Trigger when 20% of the element is visible
-    };
-
-    const sections = document.querySelectorAll('.fade-in-section');
-    const observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
+    if (!aboutRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
         if (entry.isIntersecting) {
-          const sectionId = entry.target.id;
-          if (sectionId === 'about-section') {
-            setIsAboutVisible(true);
-          } else if (sectionId.startsWith('project-')) {
-            const projectIndex = parseInt(sectionId.split('-')[1], 10) - 1;
-            setProjectVisibility(prev => {
-              const newVisibility = [...prev];
-              newVisibility[projectIndex] = true;
-              return newVisibility;
-            });
-          }
+          setIsAboutVisible(true);
           observer.unobserve(entry.target);
         }
-      });
-    }, observerOptions);
+      },
+      { threshold: 0.2 }
+    );
 
-    sections.forEach(section => observer.observe(section));
+    observer.observe(aboutRef.current);
 
     return () => observer.disconnect();
-  }, []); // Run only once on mount
+  }, [aboutRef]);
+
+  // Hide intro when scrolling down
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY || window.pageYOffset;
+      setIntroHidden(y > 20); // hide after small scroll threshold
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Observe Projects header to fade it in when it scrolls into view
+  useEffect(() => {
+    if (!projectsRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsProjectsVisible(true);
+          obs.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    obs.observe(projectsRef.current);
+    return () => obs.disconnect();
+  }, [projectsRef]);
 
   const projects = [
     {
-    title: "Entropy-Based Hybrid Retrieval",
-    description: "Aided in designing a retrieval system combining sparse (BM25) and dense (FAISS) methods, reweighted with normalized Shannon entropy. Outperformed baselines on TriviaQA (+7.6% LLM-as-a-Judge) and HotPotQA (+0.5%), and contributed to a paper accepted at ICML VecDB.",
-    link: "https://openreview.net/forum?id=bwGaZOVo0c",
-    tech: "Python, FAISS, BM25, PyTorch",
-    image: '/1.png'
-  },
-  {
-    
-    title: "Reddit RAG Pipeline",
-    description: "Built a Retrieval-Augmented Generation system using Reddit data, improving query relevance with semantic similarity ranking and token-aware truncation for LLaMA-3 inference. Deployed a 4-bit quantized LLaMA-3 model via Ollama API to enable grounded responses on 50K+ Reddit posts.",
-    link: "https://github.com/Jimboni-tech/reddit-rag",
-    tech: "Python, PyTorch, Hugging Face, Ollama, Pandas"
-  },
-  {
-    title: "OnyxScript",
-    description: "Developed a creator platform that generates AI-assisted video scripts with mindmap editing and teleprompter features. Implemented AI autofill that reduced average script creation time by 50%, reaching 50+ beta testers.",
-    link: "https://www.onyxscript.com/",
-    tech: "React, Node.js, Express, MongoDB",
-    image: '/3.png'
-  },
-  {
-    title: "Reddit Sentiment vs. Bitcoin Volatility",
-    description: "Analyzed 35K+ Reddit posts alongside Bitcoin market data using sentiment analysis and statistical testing. Found evidence that Bitcoin volatility Granger-causes Reddit sentiment with ~95% confidence.",
-    link: "https://github.com/Jimboni-tech/The-Evolving-Relationship-Between-Public-Sentiment-and-Bitcoin-Market-Volatility",
-    tech: "Python, Pandas, NumPy, NLTK",
-    image: '/4.png'
-  },
-  
-  {
-  title: "School Sign-In/Sign-Out System",
-  description: "Developed a digital sign-in/sign-out platform that streamlined student entry and exit tracking, improving accessibility and reducing manual record-keeping in the school ecosystem.",
-  link: "#",
-  tech: "React, JavaScript, CSS",
-  image: '/5.png'
-}
-];
+      title: "Entropy-Based Hybrid Retrieval",
+      description: "Aided in designing a retrieval system combining sparse (BM25) and dense (FAISS) methods, reweighted with normalized Shannon entropy. Outperformed baselines on TriviaQA (+7.6% LLM-as-a-Judge) and HotPotQA (+0.5%), and contributed to a paper accepted at ICML VecDB.",
+      link: "https://openreview.net/forum?id=bwGaZOVo0c",
+      tech: "Python, FAISS, BM25, PyTorch",
+    },
+    {
+      title: "Reddit RAG Pipeline",
+      description: "Built a Retrieval-Augmented Generation system using Reddit data, improving query relevance with semantic similarity ranking and token-aware truncation for LLaMA-3 inference. Deployed a 4-bit quantized LLaMA-3 model via Ollama API to enable grounded responses on 50K+ Reddit posts.",
+      link: "https://github.com/Jimboni-tech/reddit-rag",
+      tech: "Python, PyTorch, Hugging Face, Ollama, Pandas"
+    },
+    {
+      title: "OnyxScript",
+      description: "Developed a creator platform that generates AI-assisted video scripts with mindmap editing and teleprompter features. Implemented AI autofill that reduced average script creation time by 50%, reaching 50+ beta testers.",
+      link: "https://www.onyxscript.com/",
+      tech: "React, Node.js, Express, MongoDB",
+    },
+    {
+      title: "Reddit Sentiment vs. Bitcoin Volatility",
+      description: "Analyzed 35K+ Reddit posts alongside Bitcoin market data using sentiment analysis and statistical testing. Found evidence that Bitcoin volatility Granger-causes Reddit sentiment with ~95% confidence.",
+      link: "https://github.com/Jimboni-tech/The-Evolving-Relationship-Between-Public-Sentiment-and-Bitcoin-Market-Volatility",
+      tech: "Python, Pandas, NumPy, NLTK",
+    },
+    {
+      title: "School Sign-In/Sign-Out System",
+      description: "Developed a digital sign-in/sign-out platform that streamlined student entry and exit tracking, improving accessibility and reducing manual record-keeping in the school ecosystem.",
+      link: "#",
+      tech: "React, JavaScript, CSS",
+    }
+  ];
 
   return (
     <div className="container">
       <GridBackground />
       
-      <div className="social-icons">
-        <a 
-          href="https://github.com/Jimboni-tech" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="social-icon"
-          aria-label="GitHub Profile"
-        >
-          <FaGithub />
-        </a>
-        <a 
-          href="https://www.linkedin.com/in/jimmy-z-2007xz/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="social-icon"
-          aria-label="LinkedIn Profile"
-        >
-          <FaLinkedin />
-        </a>
-        <a 
-          href="https://drive.google.com/file/d/1sFiD0-wD7oy2i32mDssojGlQD5eC522n/view?usp=sharing" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="social-icon"
-          aria-label="Download Resume"
-        >
-          <FaFileAlt />
-        </a>
-      </div>
+      <Header />
 
-      <div className="intro-section">
-        <h1 className="title">
-          James Zhou
-        </h1>
-        <p className="subtitle" style={{ minHeight: '1.5em' }}>
-          {subtitleText}
-          <span className="blinking-cursor"></span>
-        </p>
-      </div>
-
-      <div
-        id="about-section"
-        className={`about-section fade-in-section ${isAboutVisible ? 'is-visible' : ''}`}
-      >
-        <div className="about-grid">
-          <h2 className="section-title">About</h2>
-          <div className="about-content">
-            <p className="about-text">
-              Hi! I’m a computer science student at the University of Maryland with a strong interest in software engineering, systems, and machine learning. I enjoy tackling challenging problems and finding clear, practical solutions through code, especially when those solutions have real-world impact. I care about building things that are efficient and easy to understand, and I’m motivated by the chance to keep learning, collaborate with others, and create technology that genuinely makes a difference.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="projects-section">
-        <h2 className="section-title projects-title">Projects</h2>
-        <div className="projects-container">
-          {projects.map((project, index) => (
-            <Project
-              key={index}
-              project={project}
-              index={index}
-              isVisible={projectVisibility[index]}
-            />
-          ))}
-        </div>
-      </div>
+      <Intro />
+      <About />
+      <ProjectsSection projects={projects} />
       
       <style>{`
+        :root {
+          --bg: #f6fbf6; /* light background */
+          --panel: #ffffff; /* card / section background */
+          --text: #805428ff; /* UPDATED: Tree Brown for main text */
+          --muted: #836953; /* UPDATED: Lighter brown for muted text */
+          --accent: #2aa86a; /* green accent */
+          --accent-600: #1f8f4a;
+          --card: rgba(42,168,106,0.06);
+        }
+
         /* General styles */
         body {
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            background-color: #000;
-            color: #fff;
+            background-color: var(--bg);
+            color: var(--text); /* Default text color is now brown */
         }
 
         /* Container styles */
         .container {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: stretch; /* allow children to span full width */
           justify-content: flex-start;
           min-height: 100vh;
+          padding-top: 100vh; /* push all content below the first viewport */
           font-family: monospace;
           text-align: center;
           position: relative;
           z-index: 1;
           background: transparent;
+          width: 100%;
         }
 
         /* About section styles */
         .about-section {
-          background-color: transparent !important;
+          background-color: transparent; /* removed panel background */
         }
 
         /* Projects section styles */
@@ -227,7 +190,7 @@ const App = () => {
 
         /* Intro section styles */
         .intro-section {
-          height: 60vh; /* Reduced from 80vh */
+          height: 60vh; /* visible header area */
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -235,6 +198,43 @@ const App = () => {
           padding-top: 0; /* Remove default padding */
           padding-bottom: 0;
           margin-bottom: 0; /* Removed margin */
+          position: fixed; /* keep visible on initial load */
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 20;
+          background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.0));
+          color: var(--text);
+        }
+
+        /* Header (social icons) - fixed and always visible */
+        .site-header {
+          position: fixed;
+          top: 0; /* always at top */
+          left: 0;
+          right: 0;
+          z-index: 90;
+          background: rgba(255,255,255,0.06); /* near-transparent background for legibility */
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          border-bottom: 1px solid rgba(10, 30, 20, 0.04);
+        }
+
+        .site-header .header-inner {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 0.5rem 1.25rem;
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+        }
+
+        .intro-section.intro-hidden {
+          opacity: 0;
+          transform: translateY(-30px);
+          transition: opacity 0.5s ease, transform 0.5s ease;
+          pointer-events: none;
         }
 
         /* Title styles */
@@ -242,7 +242,8 @@ const App = () => {
           font-size: 2.25rem; /* text-4xl */
           font-weight: 800; /* font-extrabold */
           margin-bottom: 1rem; /* mb-4 */
-          text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+          text-shadow: 0 2px 0 rgba(255,255,255,0.6);
+          color: #54371aff;
         }
 
         @media (min-width: 640px) {
@@ -257,7 +258,7 @@ const App = () => {
           display: inline-block;
           height: 1.2em; 
           width: 2px;
-          background-color: #fff;
+          background-color: var(--text);
           margin-left: 2px;
           vertical-align: middle;
           animation: blink 1s step-end infinite;
@@ -267,7 +268,7 @@ const App = () => {
         .subtitle {
           font-size: 1.125rem; /* text-lg */
           font-weight: 300; /* font-light */
-          color: #d1d5db; /* text-gray-300 */
+          color: var(--accent); /* muted text */
           position: relative;
         }
 
@@ -286,11 +287,10 @@ const App = () => {
         /* Updated About section styles */
         .about-section {
           margin-top: 200px;
-          width: 100%;
+          width: 100%; /* Changed from 100vw to prevent overflow */
           min-height: 60vh;
-          padding: 4rem 2rem;
-          background-color: #0c0c0c;
-          margin-bottom: 2rem;
+          padding: 0;
+          margin-bottom: 6rem; /* increased gap below About */
           opacity: 0;
           transform: translateY(50px);
           transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -301,45 +301,154 @@ const App = () => {
           opacity: 1;
           transform: translateY(0);
         }
-
+        
         .about-grid {
-          max-width: 1400px;
-          margin: 0 auto;
+          width: 100%;
+          max-width: 1400px; /* Constrain content width for readability */
+          margin: 0 auto; /* Center the container */
           display: grid;
-          grid-template-columns: minmax(200px, 1fr) 2fr;
-          gap: 4rem;
+          grid-template-columns: 1fr; /* Set to a single column */
+          gap: 1rem; /* Reduced gap as title is now absolute */
           align-items: start;
+          padding: 0 2rem; /* Add horizontal padding */
+          box-sizing: border-box; /* Include padding in width calculation */
         }
 
+        .projects-container {
+          margin-top: 1rem;
+        }
+
+        /* Section title positioning (scoped to each section) */
+        :root {
+          --section-left: 5rem; /* Increased left margin for section titles */
+        }
+        
         .section-title {
           font-size: 3rem;
           font-weight: 700;
+          position: absolute;
+          left: var(--section-left); /* Align with the new padding */
+          top: 1.25rem;
+          margin: 0;
+          color: var(--color);
+          z-index: 5;
+          pointer-events: none;
           text-align: left;
-          position: sticky;
-          top: 2rem;
+        }
+
+
+        /* Place section titles top-left and ensure content sits below */
+        .about-section,
+        .projects-section {
+          position: relative; /* scope absolute .section-title to each section */
+          padding-top: 6rem; /* space for title */
         }
 
         .about-content {
           padding: 0;
         }
 
+        /* About subsection blocks */
+        .about-block {
+          margin-bottom: 1.25rem;
+          text-align: left;
+        }
+
+        .about-block-title {
+          font-size: 1.125rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+          color: var(--accent-600);
+        }
+        
+        .about-rows {
+          display: grid;
+          grid-template-rows: auto auto;
+          gap: 1.75rem;
+          grid-column: 1 / -1; /* Ensure it spans the single column in the grid */
+        }
+
+        .about-row-top {
+          display: grid;
+          grid-template-columns: 1fr; /* Stacks sections vertically */
+          gap: 1.5rem 2rem;
+          align-items: start;
+        }
+
+        .about-row-bottom {
+          display: grid;
+          grid-template-columns: 1fr; /* Stacks sections vertically */
+          gap: 1.5rem 2rem;
+          align-items: start;
+        }
+        
         .about-text {
           font-size: 1.5rem;
           line-height: 1.8;
-          color: #d1d5db;
+          color: var(--muted);
           text-align: left;
           margin: 0;
+        }
+        
+        .pet-row {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .pet-thumbs {
+          display: flex;
+          flex-direction: row; 
+          gap: 1rem;
+          margin-left: auto; 
+        }
+
+        .pet-thumb {
+          width: 220px;
+          height: 220px;
+          object-fit: cover;
+          border-radius: 10px;
+          border: 1px solid rgba(10,30,20,0.06);
+        }
+
+        @media (max-width: 1200px) {
+          .pet-thumb {
+            width: 160px;
+            height: 160px;
+          }
+        }
+        
+        @media (max-width: 800px) {
+          .pet-row {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .pet-thumbs {
+            flex-direction: row;
+            margin-left: 0;
+            margin-top: 1rem;
+          }
+
+          .pet-thumb {
+            width: 96px;
+            height: 96px;
+          }
         }
 
         @media (max-width: 768px) {
           .about-grid {
             grid-template-columns: 1fr;
             gap: 2rem;
+            padding: 0 1rem; /* Adjust padding for smaller screens */
           }
-
+          
           .section-title {
             position: relative;
             top: 0;
+            left: 0;
+            margin-bottom: 1rem;
+            padding-left: 0; /* Remove padding if any */
           }
 
           .about-text {
@@ -349,27 +458,34 @@ const App = () => {
         
         /* Projects section styles */
         .projects-section {
-          width: 100%;
-          padding: 4rem 2rem;
-          background-color: #000;
+          width: 100%; /* Use 100% instead of 100vw */
+          padding: 6rem 0 4rem; /* more top padding to separate from About */
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: stretch;
+          box-sizing: border-box;
         }
 
+        /* Projects title should be aligned top-left of the section, not full-width */
         .projects-title {
-          text-align: center;
-          margin-bottom: 4rem;
-          position: relative;
-          font-size: 3.5rem;
+          display: inline-block;
+          text-align: left;
+          margin: 0 0 2rem 0;
+          font-size: 3.25rem;
+          color: var(--text);
+          transform: none; /* ensure no extra translate from fade-in */
+          width: auto;
         }
 
         .projects-container {
           width: 100%;
-          max-width: 1400px;
           display: flex;
           flex-direction: column;
-          gap: 8rem;
+          gap: 3rem;
+          padding: 0 2rem; /* align content with about-grid */
+          max-width: 1600px;
+          margin: 0 auto;
+          box-sizing: border-box;
         }
 
         @media (max-width: 768px) {
@@ -381,15 +497,15 @@ const App = () => {
 
         .project-container {
           display: flex;
-          align-items: center;
-          gap: 4rem;
-          min-height: 400px;
+          align-items: flex-start;
+          gap: 1.5rem;
+          min-height: auto;
           opacity: 0;
-          transform: translateY(50px);
-          transition: all 1s cubic-bezier(0.17, 0.55, 0.55, 1);
-          background-color: rgba(0, 0, 0, 0.3); /* subtle dark background for readability */
-          border-radius: 12px;
-          backdrop-filter: blur(5px); /* optional: adds slight blur effect */
+          transform: translateY(30px);
+          transition: all 0.9s cubic-bezier(0.17, 0.55, 0.55, 1);
+          border-radius: 8px;
+          padding: 1rem 1.25rem;
+          margin-left: 70px;
         }
 
         .project-container.is-visible {
@@ -400,47 +516,13 @@ const App = () => {
         .project-content {
           flex: 1;
           text-align: left;
-          padding: 2rem;
-        }
-
-        .project-image {
-          flex: 1;
-          height: 400px;
-          position: relative;
-          overflow: hidden;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .image-placeholder {
-          width: 100%;
-          height: 100%;
-          background: rgba(26, 26, 26, 0.3); /* make placeholder more transparent */
-          transition: transform 0.3s ease;
-        }
-
-        .project-container:hover .image-placeholder {
-          transform: scale(1.05);
-        }
-
-        .project-img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain; /* Changed from cover to contain */
-          transition: transform 0.3s ease;
-          background-color: transparent; /* remove background color */
-        }
-
-        .project-container:hover .project-img {
-          transform: scale(1.05);
+          padding: 0;
         }
 
         .project-title {
-          font-size: 2rem;
-          margin-bottom: 1.5rem;
-          color: #fff;
+          font-size: 1.25rem;
+          margin-bottom: 0.5rem;
+          color: var(--text);
           position: relative;
         }
 
@@ -448,32 +530,32 @@ const App = () => {
           content: '';
           position: absolute;
           left: 0;
-          bottom: -0.5rem;
-          width: 60px;
-          height: 4px;
-          background: #63b3ed;
+          bottom: -0.35rem;
+          width: 48px;
+          height: 3px;
+          background: var(--accent);
         }
 
         .project-description {
-          font-size: 1.1rem;
-          line-height: 1.7;
-          color: #a0a0a0;
-          margin-bottom: 2rem;
+          font-size: 1rem;
+          line-height: 1.6;
+          color: var(--muted);
+          margin-bottom: 0.5rem;
         }
 
         .project-tech {
-          font-size: 1rem;
-          color: #63b3ed;
-          margin-bottom: 2rem;
+          font-size: 0.95rem;
+          color: var(--accent-600);
+          margin-bottom: 0.5rem;
         }
 
         .project-link {
           display: inline-block;
-          color: #fff;
+          color: var(--accent-600);
           text-decoration: none;
-          font-weight: 500;
-          font-size: 1.1rem;
-          padding: 0.5rem 0;
+          font-weight: 600;
+          font-size: 1rem;
+          padding: 0.25rem 0;
           position: relative;
         }
 
@@ -484,8 +566,8 @@ const App = () => {
           height: 2px;
           bottom: 0;
           left: 0;
-          background-color: #63b3ed;
-          transition: width 0.3s ease;
+          background-color: var(--accent-600);
+          transition: width 0.25s ease;
         }
 
         .project-link:hover::after {
@@ -495,23 +577,19 @@ const App = () => {
         @media (max-width: 768px) {
           .project-container {
             flex-direction: column !important;
-            gap: 2rem;
+            gap: 0.75rem;
           }
           
           .project-content {
-            padding: 1rem;
-          }
-          
-          .project-image {
-            height: 250px;
+            padding: 0.5rem 0;
           }
         }
 
         /* Fade-in animation styles */
         .fade-in-section {
           opacity: 0;
-          transform: translateY(50px);
-          transition: all 1.2s cubic-bezier(0.17, 0.55, 0.55, 1);
+          transform: translateY(30px);
+          transition: all 0.9s cubic-bezier(0.17, 0.55, 0.55, 1);
           will-change: opacity, transform;
         }
 
@@ -521,23 +599,21 @@ const App = () => {
         }
 
         .social-icons {
-          position: fixed;
-          top: 2rem;
-          left: 2rem;
           display: flex;
           gap: 1rem;
           z-index: 100;
+          margin-top: 10px;
         }
 
         .social-icon {
-          color: white;
+          color: var(--text);
           font-size: 1.8rem;
           transition: transform 0.3s ease, color 0.3s ease;
         }
 
         .social-icon:hover {
           transform: translateY(-3px);
-          color: #63b3ed;
+          color: var(--accent-600);
         }
 
         @media (max-width: 768px) {
