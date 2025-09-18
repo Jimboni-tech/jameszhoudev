@@ -47,7 +47,7 @@ const Intro = () => {
   }, [subtitleText, isDeleting, loopNum, typingSpeed]);
 
   return (
-    <div className="intro-section">
+  <div id="intro" className="intro-section">
       <h1 className="title">James Zhou</h1>
       <p className="subtitle" style={{ minHeight: '1.5em' }}>
         {subtitleText}

@@ -22,7 +22,7 @@ const ProjectsSection = ({ projects }) => {
   }, [ref]);
 
   return (
-    <div className="projects-section">
+    <div id="projects-section" className="projects-section">
       <h2
         ref={ref}
         className={`section-title projects-title fade-in-section ${visible ? 'is-visible' : ''}`}

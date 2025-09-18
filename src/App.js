@@ -5,6 +5,7 @@ import Intro from './components/Intro';
 import About from './components/About';
 import ProjectsSection from './components/ProjectsSection';
 import Header from './components/Header';
+import Footer from './components/Footer';
 
 // Main App component
 const App = () => {
@@ -100,37 +101,44 @@ const App = () => {
 
   const projects = [
     {
+      title: "Commit4Good",
+      description: "I developed a full-stack volunteer platform during a 36-hour hackathon that enables nonprofits to connect with skilled volunteers by utilizing REST APIs and a Mongoose-based user profiling system. The platform was designed with a dual-impact model—lowering barriers for new developers to gain real-world experience while providing nonprofits with affordable technical support. Upon completing this project after a grueling all-nighter, I pitched the impact of this project to an 8-judge panel.",
+      link: "https://github.com/Jimboni-tech/hophacks",
+      tech: "React, Node.js, Express, Vite, MongoDB",
+      image: "/commit4good.png",
+    },
+    {
       title: "Entropy-Based Hybrid Retrieval",
-      description: "Aided in designing a retrieval system combining sparse (BM25) and dense (FAISS) methods, reweighted with normalized Shannon entropy. Outperformed baselines on TriviaQA (+7.6% LLM-as-a-Judge) and HotPotQA (+0.5%), and contributed to a paper accepted at ICML VecDB.",
+      description: "I helped design a hybrid retrieval system that combines sparse (BM25) and dense (FAISS) methods, enhanced with normalized Shannon entropy for adaptive reweighting. The system outperformed baselines on TriviaQA (+7.6% LLM-as-a-Judge) and HotPotQA (+0.5%) and contributed to a paper accepted at ICML VecDB.",
       link: "https://openreview.net/forum?id=bwGaZOVo0c",
       tech: "Python, FAISS, BM25, PyTorch",
       image: "/entropy.png",
     },
     {
       title: "Reddit RAG Pipeline",
-      description: "Built a Retrieval-Augmented Generation system using Reddit data, improving query relevance with semantic similarity ranking and token-aware truncation for LLaMA-3 inference. Deployed a 4-bit quantized LLaMA-3 model via Ollama API to enable grounded responses on 50K+ Reddit posts.",
+      description: "I built a Retrieval-Augmented Generation (RAG) system using Reddit data, improving query relevance through semantic similarity ranking and token-aware truncation for LLaMA-3 inference. The system deployed a 4-bit quantized LLaMA-3 model via the Ollama API, enabling grounded responses across 50K+ Reddit posts.",
       link: "https://github.com/Jimboni-tech/reddit-rag",
       tech: "Python, PyTorch, Hugging Face, Ollama, Pandas",
-      image: "/projects/reddit-rag.png"
+      image: "/redditrag.png"
     },
     {
       title: "OnyxScript",
-      description: "Developed a creator platform that generates AI-assisted video scripts with mindmap editing and teleprompter features. Implemented AI autofill that reduced average script creation time by 50%, reaching 50+ beta testers.",
+      description: "I developed a creator platform that generates AI-assisted video scripts with integrated mindmap editing and teleprompter features. By implementing an AI autofill function, the platform reduced average script creation time by 50% and was tested by over 50 beta users.",
       link: "https://www.onyxscript.com/",
       tech: "React, Node.js, Express, MongoDB",
       image: "/onyxscript.png",
     },
     {
       title: "Reddit Sentiment vs. Bitcoin Volatility",
-      description: "Analyzed 35K+ Reddit posts alongside Bitcoin market data using sentiment analysis and statistical testing. Found evidence that Bitcoin volatility Granger-causes Reddit sentiment with ~95% confidence.",
+      description: "I analyzed 35K+ Reddit posts alongside Bitcoin market data using sentiment analysis and statistical testing. The study found evidence that Bitcoin volatility Granger-causes Reddit sentiment with ~95% confidence.",
       link: "https://github.com/Jimboni-tech/The-Evolving-Relationship-Between-Public-Sentiment-and-Bitcoin-Market-Volatility",
       tech: "Python, Pandas, NumPy, NLTK",
       image: "/sentiment.png",
     },
     {
       title: "School Sign-In/Sign-Out System",
-      description: "Developed a digital sign-in/sign-out platform that streamlined student entry and exit tracking, improving accessibility and reducing manual record-keeping in the school ecosystem.",
-      link: "#",
+      description: "After realizing how annoying it was to have to walk all the way to the main office at my high school, I built a digital sign-in/sign-out platform to streamline student entry and exit tracking. After presenting this project to my school officials, it was successfully integrated into the school website's workflow, and it improved accessibility while reducing manual record-keeping across the school ecosystem.",
+      link: "https://github.com/Jimboni-tech/popcs-siso",
       tech: "React, JavaScript, CSS",
       image: "/siso.png",
     }
@@ -145,6 +153,7 @@ const App = () => {
       <Intro />
       <About />
       <ProjectsSection projects={projects} />
+  <Footer />
       
       <style>{`
         :root {
@@ -157,8 +166,9 @@ const App = () => {
           --card: rgba(42,168,106,0.06);
         }
 
-        /* General styles */
-        body {
+  /* General styles */
+  html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+  body {
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
@@ -231,7 +241,7 @@ const App = () => {
           padding: 0.5rem 1.25rem;
           width: 100%;
           display: flex;
-          justify-content: flex-start;
+          justify-content: space-between;
           align-items: center;
         }
 
@@ -336,6 +346,7 @@ const App = () => {
           top: 1.25rem;
           margin: 0;
           color: var(--color);
+          scroll-margin-top: 120px; /* offset anchors so titles are visible below the fixed header */
           z-index: 5;
           pointer-events: none;
           text-align: left;
@@ -661,8 +672,29 @@ const App = () => {
           margin-top: 10px;
         }
 
-        .social-icon {
+        .site-nav {
+          display: flex;
+          gap: 1.25rem;
+          align-items: center;
+        }
+
+        .nav-link {
           color: var(--text);
+          text-decoration: none;
+          font-weight: 600;
+          padding: 0.35rem 0.5rem;
+          border-radius: 6px;
+          transition: background-color 0.18s ease, transform 0.12s ease;
+        }
+
+        .nav-link:hover {
+          background: rgba(42,168,106,0.06);
+          transform: translateY(-2px);
+          color: var(--accent-600);
+        }
+
+        .social-icon {
+          color: #54371aff;
           font-size: 1.8rem;
           transition: transform 0.3s ease, color 0.3s ease;
         }
@@ -681,6 +713,33 @@ const App = () => {
           .social-icon {
             font-size: 1.5rem;
           }
+        }
+
+        /* Footer / Nature band */
+        .nature-footer {
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          background: transparent;
+          position: relative;
+          z-index: 2;
+          padding: 0;
+          overflow: hidden;
+        }
+
+        .nature-footer svg { display: block; }
+
+        .footer-text {
+          text-align: center;
+          color: #54371aff;
+          font-size: 1.05rem;
+          font-weight: 600;
+          margin-top: -2.25rem;
+          margin-bottom: 1.5rem;
+          letter-spacing: 0.02em;
+        }
+
+        @media (max-width: 600px) {
+          .footer-text { font-size: 0.95rem; margin-top: -1.25rem; }
         }
       `}</style>
     </div>
