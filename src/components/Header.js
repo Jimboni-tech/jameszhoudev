@@ -1,7 +1,65 @@
 import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaGithub, FaLinkedin, FaFileAlt } from 'react-icons/fa';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const scrollToId = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleHome = (e) => {
+    e.preventDefault();
+    const el = document.getElementById('intro');
+
+    if (location.pathname !== '/') {
+      navigate('/');
+      // after navigation, scroll to top and reveal intro
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (el) el.classList.remove('intro-hidden');
+      }, 150);
+      return;
+    }
+
+    // already on home: existing behavior
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!el) return;
+
+    if ((window.scrollY || window.pageYOffset) === 0) {
+      el.classList.remove('intro-hidden');
+      return;
+    }
+
+    const onScroll = () => {
+      if ((window.scrollY || window.pageYOffset) === 0) {
+        el.classList.remove('intro-hidden');
+        window.removeEventListener('scroll', onScroll);
+        clearTimeout(fallback);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const fallback = setTimeout(() => {
+      el.classList.remove('intro-hidden');
+      window.removeEventListener('scroll', onScroll);
+    }, 1200);
+  };
+
+  const handleNavTo = (id) => (e) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => scrollToId(id), 150);
+    } else {
+      scrollToId(id);
+    }
+  };
+
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -36,50 +94,10 @@ const Header = () => {
         </div>
 
         <nav className="site-nav" aria-label="Main navigation">
-          <a href="#intro" className="nav-link" onClick={(e) => {
-            e.preventDefault();
-            // Scroll to the very top, then make the intro visible only after scrolling finishes
-            const el = document.getElementById('intro');
-            // Start smooth scroll
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            if (!el) return;
-
-            // If already at top, show intro immediately
-            if ((window.scrollY || window.pageYOffset) === 0) {
-              el.classList.remove('intro-hidden');
-              return;
-            }
-
-            // Otherwise wait until the scroll reaches top. Use a scroll listener
-            const onScroll = () => {
-              if ((window.scrollY || window.pageYOffset) === 0) {
-                el.classList.remove('intro-hidden');
-                window.removeEventListener('scroll', onScroll);
-                clearTimeout(fallback);
-              }
-            };
-
-            window.addEventListener('scroll', onScroll, { passive: true });
-
-            // Fallback: if scrollend isn't detected within 1200ms, show intro anyway
-            const fallback = setTimeout(() => {
-              el.classList.remove('intro-hidden');
-              window.removeEventListener('scroll', onScroll);
-            }, 1200);
-          }}>Home</a>
-
-          <a href="#about-section" className="nav-link" onClick={(e) => {
-            e.preventDefault();
-            const el = document.getElementById('about-section');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}>About</a>
-
-          <a href="#projects-section" className="nav-link" onClick={(e) => {
-            e.preventDefault();
-            const el = document.getElementById('projects-section');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}>Projects</a>
+          <a href="#intro" className="nav-link" onClick={handleHome}>Home</a>
+          <a href="#about-section" className="nav-link" onClick={handleNavTo('about-section')}>About</a>
+          <Link to="/blog" className="nav-link">Blog</Link>
+          <a href="#projects-section" className="nav-link" onClick={handleNavTo('projects-section')}>Projects</a>
         </nav>
       </div>
     </header>
