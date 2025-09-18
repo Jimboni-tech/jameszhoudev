@@ -104,30 +104,35 @@ const App = () => {
       description: "Aided in designing a retrieval system combining sparse (BM25) and dense (FAISS) methods, reweighted with normalized Shannon entropy. Outperformed baselines on TriviaQA (+7.6% LLM-as-a-Judge) and HotPotQA (+0.5%), and contributed to a paper accepted at ICML VecDB.",
       link: "https://openreview.net/forum?id=bwGaZOVo0c",
       tech: "Python, FAISS, BM25, PyTorch",
+      image: "/entropy.png",
     },
     {
       title: "Reddit RAG Pipeline",
       description: "Built a Retrieval-Augmented Generation system using Reddit data, improving query relevance with semantic similarity ranking and token-aware truncation for LLaMA-3 inference. Deployed a 4-bit quantized LLaMA-3 model via Ollama API to enable grounded responses on 50K+ Reddit posts.",
       link: "https://github.com/Jimboni-tech/reddit-rag",
-      tech: "Python, PyTorch, Hugging Face, Ollama, Pandas"
+      tech: "Python, PyTorch, Hugging Face, Ollama, Pandas",
+      image: "/projects/reddit-rag.png"
     },
     {
       title: "OnyxScript",
       description: "Developed a creator platform that generates AI-assisted video scripts with mindmap editing and teleprompter features. Implemented AI autofill that reduced average script creation time by 50%, reaching 50+ beta testers.",
       link: "https://www.onyxscript.com/",
       tech: "React, Node.js, Express, MongoDB",
+      image: "/onyxscript.png",
     },
     {
       title: "Reddit Sentiment vs. Bitcoin Volatility",
       description: "Analyzed 35K+ Reddit posts alongside Bitcoin market data using sentiment analysis and statistical testing. Found evidence that Bitcoin volatility Granger-causes Reddit sentiment with ~95% confidence.",
       link: "https://github.com/Jimboni-tech/The-Evolving-Relationship-Between-Public-Sentiment-and-Bitcoin-Market-Volatility",
       tech: "Python, Pandas, NumPy, NLTK",
+      image: "/sentiment.png",
     },
     {
       title: "School Sign-In/Sign-Out System",
       description: "Developed a digital sign-in/sign-out platform that streamlined student entry and exit tracking, improving accessibility and reducing manual record-keeping in the school ecosystem.",
       link: "#",
       tech: "React, JavaScript, CSS",
+      image: "/siso.png",
     }
   ];
 
@@ -290,7 +295,7 @@ const App = () => {
           width: 100%; /* Changed from 100vw to prevent overflow */
           min-height: 60vh;
           padding: 0;
-          margin-bottom: 6rem; /* increased gap below About */
+          margin-bottom: 10rem; /* increased gap below About */
           opacity: 0;
           transform: translateY(50px);
           transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -404,11 +409,16 @@ const App = () => {
         }
 
         .pet-thumb {
-          width: 220px;
-          height: 220px;
+          width: 200px;
+          height: 250px;
           object-fit: cover;
           border-radius: 10px;
           border: 1px solid rgba(10,30,20,0.06);
+        }
+
+        /* Helper to force images to stretch and fill their container */
+        .pet-thumb-fill {
+          object-fit: fill !important;
         }
 
         @media (max-width: 1200px) {
@@ -459,11 +469,12 @@ const App = () => {
         /* Projects section styles */
         .projects-section {
           width: 100%; /* Use 100% instead of 100vw */
-          padding: 6rem 0 4rem; /* more top padding to separate from About */
+          padding: 10rem 0 4rem; /* more top padding to separate from About */
           display: flex;
           flex-direction: column;
           align-items: stretch;
           box-sizing: border-box;
+          margin-top: 500px;
         }
 
         /* Projects title should be aligned top-left of the section, not full-width */
@@ -517,6 +528,41 @@ const App = () => {
           flex: 1;
           text-align: left;
           padding: 0;
+        }
+
+        /* Right-side image area for each project (flex child) */
+        .project-image {
+          flex: 0 0 360px; /* larger fixed width column on the right */
+          height: 220px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--panel);
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 8px 26px rgba(10,30,20,0.06);
+          border: 1px solid rgba(10,30,20,0.04);
+        }
+
+        .project-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .project-image-placeholder {
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, rgba(42,168,106,0.06), rgba(10,30,20,0.02));
+        }
+
+        /* Intermediate breakpoint for medium screens */
+        @media (max-width: 1200px) {
+          .project-image {
+            flex: 0 0 300px;
+            height: 200px;
+          }
         }
 
         .project-title {
@@ -578,6 +624,16 @@ const App = () => {
           .project-container {
             flex-direction: column !important;
             gap: 0.75rem;
+            padding-right: 1rem; /* small padding retained */
+            margin-left: 0;
+            align-items: stretch;
+          }
+
+          .project-image {
+            width: 100%;
+            height: 260px;
+            flex: 0 0 auto;
+            order: 2; /* place after content when stacked */
           }
           
           .project-content {
