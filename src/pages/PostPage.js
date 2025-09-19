@@ -3,14 +3,30 @@ import { useParams, useNavigate } from 'react-router-dom';
 import GridBackground from '../components/GridBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import posts from '../data/posts';
+import localPosts from '../data/posts';
 import { useState, useEffect } from 'react';
+import { fetchPostById } from '../lib/supabase';
 
 const PostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const post = posts.find((p) => p.id === id);
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      const remote = await fetchPostById(id);
+      if (!mounted) return;
+      if (remote) setPost(remote);
+      else setPost(localPosts.find((p) => p.id === id) || null);
+      setLoading(false);
+    }
+    load();
+    return () => { mounted = false; };
+  }, [id]);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [galleryPage, setGalleryPage] = useState(0);
   const pageSize = 3;
@@ -38,7 +54,54 @@ const PostPage = () => {
     };
   }, [post]);
 
+  // prefer thumbnail path for gallery thumbs (public/thumbs/...)
+  const getThumbSrc = (src) => {
+    if (!src) return src;
+    // normalize leading slash
+    if (src.startsWith('/')) return `/thumbs${src}`;
+    return `thumbs/${src}`;
+  };
+
+  // preload first full-size image for faster lightbox open / perceived performance
+  useEffect(() => {
+    if (!post || !post.images || post.images.length === 0) return;
+    const first = post.images[0];
+    const linkId = 'preload-first-image';
+    let link = document.getElementById(linkId);
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.id = linkId;
+      document.head.appendChild(link);
+    }
+    link.href = first;
+
+    return () => {
+      const l = document.getElementById(linkId);
+      if (l) l.remove();
+    };
+  }, [post]);
+
   if (!post) {
+    if (loading) {
+      return (
+        <div className="blog-page">
+          <GridBackground />
+          <Header />
+          <div className="blog-container container">
+            <main className="blog-main">
+              <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <h2>Loading post…</h2>
+                <p style={{ color: 'rgba(0,0,0,0.45)' }}>Fetching content — this may take a moment.</p>
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="blog-page">
         <GridBackground />
@@ -96,9 +159,18 @@ const PostPage = () => {
                 <div className="post-gallery">
                   {post.images.slice(galleryPage * pageSize, galleryPage * pageSize + pageSize).map((src, i) => {
                     const globalIndex = galleryPage * pageSize + i;
+                    const thumb = getThumbSrc(src);
                     return (
                       <button key={globalIndex} className="gallery-thumb" onClick={() => openLightbox(globalIndex)}>
-                        <img src={src} alt={`img-${globalIndex}`} loading="lazy" decoding="async" />
+                        <img
+                          src={thumb}
+                          srcSet={`${thumb} 600w, ${src} 1200w`}
+                          sizes="(max-width: 700px) 90vw, 33vw"
+                          alt={`img-${globalIndex}`}
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = src; }}
+                        />
                       </button>
                     );
                   })}

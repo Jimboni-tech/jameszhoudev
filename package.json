@@ -20,9 +20,19 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "generate-thumbs": "node scripts/generate-thumbs.js",
+    "seed-posts": "node scripts/seed-posts.js",
+    "create-schema": "node scripts/run-schema.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.0",
+    "minimist": "^1.2.8",
+    "sharp": "^0.32.0"
   },
   "eslintConfig": {
     "extends": [
