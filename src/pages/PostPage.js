@@ -4,15 +4,16 @@ import GridBackground from '../components/GridBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import posts from '../data/posts';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const PostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const post = posts.find((p) => p.id === id);
-
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [galleryPage, setGalleryPage] = useState(0);
+  const pageSize = 3;
 
   const openLightbox = (i) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);
@@ -21,6 +22,21 @@ const PostPage = () => {
     const len = post.images ? post.images.length : 0;
     return (prev === null ? 0 : (prev - 1 + len) % len);
   });
+
+  // preload all images in background (non-blocking)
+  useEffect(() => {
+    if (!post || !post.images) return;
+    const loaders = post.images.map((src) => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    return () => {
+      // hint to browser we don't need references anymore
+      loaders.length = 0;
+    };
+  }, [post]);
 
   if (!post) {
     return (
@@ -46,16 +62,16 @@ const PostPage = () => {
   return (
     <div className="blog-page">
       <GridBackground />
-      <Header />
+      {lightboxIndex === null && <Header />}
 
       <div className="blog-container container">
         <main className="blog-main">
           <article className="blog-post" style={{ maxWidth: 900, margin: '2rem auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-              <button className="back-button" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/blog'))}>
+            <div className="post-header" style={{ marginBottom: '0.5rem' }}>
+              <button className="back-button post-back" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/blog'))}>
                 Back
               </button>
-              <h1 className="post-title" style={{ margin: 0, flex: 1, textAlign: 'center' }}>{post.title}</h1>
+              <h1 className="post-title">{post.title}</h1>
             </div>
             <div className="post-meta">
               <time className="post-date" dateTime={post.date}>{new Date(post.date).toLocaleDateString()}</time>
@@ -78,11 +94,32 @@ const PostPage = () => {
               <div className="post-gallery-section">
                 <h2 className="gallery-title">Photo Gallery</h2>
                 <div className="post-gallery">
-                  {post.images.map((src, i) => (
-                    <button key={i} className="gallery-thumb" onClick={() => openLightbox(i)}>
-                      <img src={src} alt={`img-${i}`} />
-                    </button>
-                  ))}
+                  {post.images.slice(galleryPage * pageSize, galleryPage * pageSize + pageSize).map((src, i) => {
+                    const globalIndex = galleryPage * pageSize + i;
+                    return (
+                      <button key={globalIndex} className="gallery-thumb" onClick={() => openLightbox(globalIndex)}>
+                        <img src={src} alt={`img-${globalIndex}`} loading="lazy" decoding="async" />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="gallery-controls">
+                  <button
+                    className="gallery-nav back-button"
+                    onClick={() => setGalleryPage((p) => Math.max(0, p - 1))}
+                    disabled={galleryPage === 0}
+                  >
+                    Back
+                  </button>
+                  <span className="gallery-page-indicator">{galleryPage + 1} / {Math.ceil(post.images.length / pageSize)}</span>
+                  <button
+                    className="gallery-nav back-button"
+                    onClick={() => setGalleryPage((p) => Math.min(Math.ceil(post.images.length / pageSize) - 1, p + 1))}
+                    disabled={(galleryPage + 1) * pageSize >= post.images.length}
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             )}
@@ -91,7 +128,7 @@ const PostPage = () => {
               <div className="lightbox" role="dialog" aria-modal="true">
                 <button className="lightbox-close" onClick={closeLightbox}>×</button>
                 <button className="lightbox-prev" onClick={prevLightbox}>‹</button>
-                <img src={post.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} />
+                <img src={post.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} loading="lazy" decoding="async" />
                 <button className="lightbox-next" onClick={nextLightbox}>›</button>
               </div>
             )}

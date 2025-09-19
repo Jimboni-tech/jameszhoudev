@@ -96,8 +96,9 @@ const Header = () => {
         <nav className="site-nav" aria-label="Main navigation">
           <a href="#intro" className="nav-link" onClick={handleHome}>Home</a>
           <a href="#about-section" className="nav-link" onClick={handleNavTo('about-section')}>About</a>
-          <Link to="/blog" className="nav-link">Blog</Link>
+          
           <a href="#projects-section" className="nav-link" onClick={handleNavTo('projects-section')}>Projects</a>
+          <Link to="/blog" className="nav-link">Blog</Link>
         </nav>
       </div>
     </header>
