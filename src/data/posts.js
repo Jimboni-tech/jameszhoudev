@@ -109,7 +109,7 @@ I'll open-source more of the code and provide deployment notes soon.`
 This post summarizes an entropy-weighted hybrid retrieval approach combining BM25 and dense vectors.
 
 Key ideas:
-- Use adf Shannon entropy to measure token uncertainty
+- Use adf hi entropy to measure token uncertainty
 - Reweight sparse/dense scores adaptively
 - Evaluate on QA benchmarks for practical impact,
 
