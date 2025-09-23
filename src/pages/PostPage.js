@@ -4,7 +4,7 @@ import GridBackground from '../components/GridBackground';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import localPosts from '../data/posts';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchPostById } from '../lib/supabase';
 
 const PostPage = () => {
@@ -82,6 +82,105 @@ const PostPage = () => {
       if (l) l.remove();
     };
   }, [post]);
+
+  // preconnect to external image host (speeds up TLS handshake / DNS)
+  useEffect(() => {
+    if (!post || !post.images || post.images.length === 0) return;
+    try {
+      const first = post.images[0];
+      if (!first || !first.startsWith('http')) return;
+      const host = new URL(first).origin;
+      const preId = 'preconnect-img-host';
+      if (!document.getElementById(preId)) {
+        const link = document.createElement('link');
+        link.rel = 'preconnect';
+        link.href = host;
+        link.crossOrigin = '';
+        link.id = preId;
+        document.head.appendChild(link);
+
+        const dns = document.createElement('link');
+        dns.rel = 'dns-prefetch';
+        dns.href = host;
+        dns.id = preId + '-dns';
+        document.head.appendChild(dns);
+      }
+    } catch (e) {
+      // ignore malformed urls
+    }
+  }, [post]);
+
+  // Small progressive image component: shows a blurred thumbnail background immediately,
+  // then loads the full image when the element is near the viewport. Uses IntersectionObserver
+  // to avoid loading images off-screen and swaps in the full-res image when ready.
+  const ProgressiveImage = ({ thumb, src, alt, sizes, srcSet, eager, fit = 'cover' }) => {
+    const [fullLoaded, setFullLoaded] = useState(false);
+    const [inView, setInView] = useState(false);
+    const imgRef = useRef(null);
+
+    useEffect(() => {
+      if (eager) {
+        setInView(true);
+        return;
+      }
+      const el = imgRef.current;
+      if (!el || typeof IntersectionObserver === 'undefined') {
+        setInView(true);
+        return;
+      }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setInView(true);
+            io.disconnect();
+          }
+        });
+      }, { rootMargin: '200px' });
+      io.observe(el);
+      return () => io.disconnect();
+    }, [eager]);
+
+    useEffect(() => {
+      if (!inView) return;
+      const img = new Image();
+      if (srcSet) img.srcset = srcSet;
+      img.src = src;
+      img.onload = () => setFullLoaded(true);
+      img.onerror = () => setFullLoaded(false);
+    }, [inView, src, srcSet]);
+
+    const wrapperStyle = {
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundImage: thumb ? `url(${thumb})` : undefined,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    };
+
+    const blurStyle = {
+      filter: fullLoaded ? 'blur(0px)' : 'blur(12px)',
+      transition: 'filter 300ms ease, opacity 300ms ease',
+    };
+
+    return (
+      <div ref={imgRef} style={wrapperStyle} className="progressive-image" aria-hidden={alt ? 'false' : 'true'}>
+        <img
+          src={fullLoaded ? src : thumb || src}
+          srcSet={srcSet}
+          sizes={sizes}
+          alt={alt}
+          style={
+            fit === 'cover'
+              ? { width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 1, ...blurStyle }
+              : { width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: 1, ...blurStyle }
+          }
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={eager ? 'high' : 'auto'}
+        />
+      </div>
+    );
+  };
 
   if (!post) {
     if (loading) {
@@ -162,14 +261,12 @@ const PostPage = () => {
                     const thumb = getThumbSrc(src);
                     return (
                       <button key={globalIndex} className="gallery-thumb" onClick={() => openLightbox(globalIndex)}>
-                        <img
-                          src={thumb}
+                        <ProgressiveImage
+                          thumb={thumb}
+                          src={src}
                           srcSet={`${thumb} 600w, ${src} 1200w`}
                           sizes="(max-width: 700px) 90vw, 33vw"
                           alt={`img-${globalIndex}`}
-                          loading="lazy"
-                          decoding="async"
-                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = src; }}
                         />
                       </button>
                     );
@@ -199,9 +296,21 @@ const PostPage = () => {
             {lightboxIndex !== null && (
               <div className="lightbox" role="dialog" aria-modal="true">
                 <button className="lightbox-close" onClick={closeLightbox}>×</button>
-                <button className="lightbox-prev" onClick={prevLightbox}>‹</button>
-                <img src={post.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} loading="lazy" decoding="async" />
-                <button className="lightbox-next" onClick={nextLightbox}>›</button>
+                <div className="lightbox-inner">
+                  <button className="lightbox-prev inner" onClick={prevLightbox} aria-label="Previous image">‹</button>
+                  <div className="lightbox-content">
+                    <ProgressiveImage
+                      thumb={getThumbSrc(post.images[lightboxIndex])}
+                      src={post.images[lightboxIndex]}
+                      srcSet={`${getThumbSrc(post.images[lightboxIndex])} 600w, ${post.images[lightboxIndex]} 2000w`}
+                      sizes="100vw"
+                      alt={`lightbox-${lightboxIndex}`}
+                      eager={true}
+                      fit="contain"
+                    />
+                  </div>
+                  <button className="lightbox-next inner" onClick={nextLightbox} aria-label="Next image">›</button>
+                </div>
               </div>
             )}
           </article>

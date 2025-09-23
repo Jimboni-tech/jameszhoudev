@@ -6,6 +6,7 @@
   --accent: #2aa86a; /* green accent */
   --accent-600: #1f8f4a;
   --card: rgba(42,168,106,0.06);
+  --lightbox-margin: 4vmin;
 }
 
 /* General styles */
@@ -114,6 +115,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-sizing: border-box;
+  /* Add this line */
 }
 
 .intro-section.intro-hidden {
@@ -207,6 +210,16 @@ body {
 /* Section title positioning (scoped to each section) */
 :root {
   --section-left: 5rem; /* Increased left margin for section titles */
+}
+
+/* mobile nav inset to keep dropdown away from screen edges */
+:root {
+  --mobile-nav-inset: 28px;
+}
+
+/* separate right inset to control right-side gap independently */
+:root {
+  --mobile-nav-right-inset: 64px;
 }
   
 .section-title {
@@ -549,6 +562,63 @@ body {
   align-items: center;
 }
 
+/* Mobile menu button */
+.mobile-menu-button {
+  display: none;
+  border: 0;
+  background: transparent;
+  padding: 0.4rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+.hamburger {
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  display: block;
+  position: relative;
+}
+.hamburger::before, .hamburger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--text);
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+.hamburger::before { top: -7px; }
+.hamburger::after { top: 7px; }
+.hamburger.is-open { background: transparent; }
+.hamburger.is-open::before { transform: translateY(7px) rotate(45deg); }
+.hamburger.is-open::after { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile responsive nav */
+@media (max-width: 900px) {
+  .site-nav { display: none; }
+  .mobile-menu-button { display: inline-block; }
+  .site-header .header-inner { justify-content: space-between; padding: 0.5rem 1rem;}
+
+  .site-nav.open {
+    display: flex;
+    position: absolute;
+  left: 12px; /* keep a small left inset */
+  right: var(--mobile-nav-right-inset); /* larger right-side gap to move it left */
+    top: calc(100% + 8px); /* place below the header-inner */
+    flex-direction: column;
+    gap: 0.25rem;
+    background: rgba(255,255,255,0.98);
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(10,30,20,0.08);
+    max-width: 420px; /* don't become extremely wide on large phones */
+    margin: 0 auto; /* center between left/right insets */
+    box-sizing: border-box;
+  }
+  .site-nav.open .nav-link { color: var(--text); padding: 0.5rem 0.75rem; display: block; }
+}
+
 .nav-link {
   color: var(--text);
   text-decoration: none;
@@ -584,6 +654,35 @@ body {
   .social-icon {
     font-size: 1.5rem;
   }
+}
+@media (max-width: 700px) {
+  /* Make the gallery a single horizontal scroll row on small screens */
+  .post-gallery {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap !important; /* prevent wrapping */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Thumbnails become fixed-width flex items so they never wrap or shrink */
+  .gallery-thumb {
+    flex: 0 0 auto;
+    width: 44vw; /* roughly two per row width on small screens */
+    max-width: 220px; /* don't get too large on wider phones */
+    aspect-ratio: 3 / 2;
+    border-radius: 8px;
+    margin-right: 0.25rem;
+  }
+
+  /* Make sure images inside fill their container */
+  .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Optional: show a small scrollbar for affordance */
+  .post-gallery::-webkit-scrollbar { height: 8px; }
+  .post-gallery::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 8px; }
 }
 
 /* Footer / Nature band */
@@ -742,7 +841,7 @@ body {
 
 .post-back {
   position: absolute; /* position relative to .blog-post */
-  left: 12px; /* small gutter inside the white card */
+  left: 1.25rem; /* align with the card's horizontal padding */
   top: 50%; /* vertically center relative to card header */
   transform: translateY(-50%);
   z-index: 20;
@@ -772,7 +871,7 @@ body {
 
 @media (max-width: 700px) {
   .post-back {
-    left: 8px;
+    left: 1rem; /* slightly smaller padding on mobile */
     top: 50%;
     transform: translateY(-50%);
   }
@@ -839,7 +938,8 @@ body {
   overflow: hidden;
   width: 32%;
   max-width: 320px;
-  height: 180px;
+  aspect-ratio: 3 / 2; /* consistent framing */
+  display: block;
 }
 
 .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -851,8 +951,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10,20,10,0.7);
-  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+
+  /* Apply the same padding to all four sides using our variable */
+  padding: var(--lightbox-margin);
+
+  /* Include padding in the element's total size calculation */
+  box-sizing: border-box;
 }
 
 .lightbox img { max-width: 95%; max-height: 92%; border-radius: 8px; }
@@ -867,8 +973,22 @@ body {
   border-radius: 6px;
   cursor: pointer;
 }
-
-.lightbox-close { top: 1.5rem; right: 1.5rem; }
+.lightbox-content .progressive-image img {
+  object-fit: contain;
+}
+.lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: none;
+  font-size: 1.6rem;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  z-index: 2010;
+  /* Ensure it's above the image */
+}
 .lightbox-prev { left: 1.5rem; }
 .lightbox-next { right: 1.5rem; }
 
@@ -888,4 +1008,39 @@ body {
 @media (max-width: 700px) {
   .blog-list { grid-template-columns: 1fr; }
   .post-toggle { align-self: stretch; text-align: center; }
+}
+
+.lightbox-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* The content area specifically for the image */
+.lightbox-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-inner .inner {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #fff;
+  font-size: 1.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-inner .inner:hover {
+  background: rgba(255, 255, 255, 0.10);
 }

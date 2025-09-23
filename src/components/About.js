@@ -56,7 +56,7 @@ const About = () => {
               <p className="about-text">
                 In the future, I would like to obtain a <span style={highlightStyle}>post-graduate degree</span> in computer science or machine learning. I love research and the idea of discovery, so I'm pretty sure I want to continue in academia. However, I also enjoy <span style={highlightStyle}>building applications</span> (especially at hackathons), so I am not 100% sure about what I want to happen in my future. <br />
                 <br />
-                Before I turn 30, I would like to <span style={highlightStyle}>backpack around eastern Europe</span> and, hopefully, climb as many mountains as I can. Nature in general is a gift from Earth, so I would like to genuinely explore it at least once before I am physically unable to.
+                Before I turn 30, I would like to <span style={highlightStyle}>backpack around China</span> and, hopefully, climb as many mountains as I can. Nature in general is a gift from Earth, so I would like to genuinely explore it at least once before I am physically unable to.
               </p>
             </section>
           </div>

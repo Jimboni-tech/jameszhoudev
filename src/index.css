@@ -7,7 +7,149 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --lightbox-horizontal: 6vw;
+  --lightbox-vertical: 6vh;
+}
+
+@media (min-width: 1400px) {
+  :root { --lightbox-vertical: 9vh; }
+}
+
+@media (max-width: 500px) {
+  :root { --lightbox-horizontal: 4vw; --lightbox-vertical: 4vh; }
+}
+
+/* Mobile-specific adjustments for gallery and lightbox */
+@media (max-width: 700px) {
+  .post-gallery { gap: 0.5rem; }
+  .gallery-thumb {
+    width: 48%;
+    max-width: none;
+    aspect-ratio: 4 / 3;
+    border-radius: 6px;
+  }
+
+  /* Make prev/next overlay on mobile so the image stays centered */
+  .lightbox-inner {
+    position: relative;
+    gap: 0;
+  }
+  .lightbox-content {
+    padding: 0 56px; /* room for overlay buttons */
+  }
+  .lightbox-inner .inner {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0.5rem 0.6rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.35);
+    color: #fff;
+    z-index: 30;
+  }
+  .lightbox-inner .inner:first-of-type { left: 12px; }
+  .lightbox-inner .inner:last-of-type { right: 12px; }
+
+  /* Slightly increase inner image max height to account for small paddings */
+  .lightbox-inner img, .lightbox img { max-height: calc(100vh - 2 * var(--lightbox-vertical) - 24px); }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Progressive image helpers */
+.progressive-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.gallery-thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  padding-top: calc(var(--lightbox-vertical) + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--lightbox-vertical) + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(var(--lightbox-horizontal) + env(safe-area-inset-left, 0px));
+  padding-right: calc(var(--lightbox-horizontal) + env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+.lightbox img {
+  max-width: calc(100vw - var(--lightbox-horizontal) - var(--lightbox-horizontal) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  max-height: calc(100vh - var(--lightbox-vertical) - var(--lightbox-vertical) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+}
+.lightbox-close, .lightbox-prev, .lightbox-next {
+  position: absolute;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: none;
+  font-size: 1.6rem;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+}
+.lightbox-close { top: 18px; right: 18px; }
+.lightbox-prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.lightbox-next { right: 18px; top: 50%; transform: translateY(-50%); }
+
+.lightbox-inner {
+  max-width: calc(100vw - var(--lightbox-horizontal) - var(--lightbox-horizontal) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  max-height: calc(100vh - var(--lightbox-vertical) - var(--lightbox-vertical) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-inner img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+
+/* Layout inside the lightbox inner area: keep the image centered while prev/next sit on either side */
+.lightbox-inner {
+  gap: 12px;
+}
+.lightbox-content {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-inner .inner {
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: #fff;
+  font-size: 1.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-inner .inner:hover { background: rgba(255,255,255,0.10); }
+
+/* Make gallery thumb buttons expand to the aspect-ratio box */
+.gallery-thumb {
+  display: inline-block;
+}
+.gallery-thumb > .progressive-image,
+.gallery-thumb > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Utility to allow ProgressiveImage to contain rather than cover */
+.progressive-image.contain img { object-fit: contain !important; }

@@ -38,7 +38,7 @@ const Project = ({ project, index }) => {
       {/* Right-side image area: renders if project.image is provided */}
       <div className="project-image" aria-hidden={!project.image}>
         {project.image ? (
-          <img src={project.image} alt={`${project.title} screenshot`} />
+          <img src={project.image} alt={`${project.title} screenshot`} loading="lazy" decoding="async" />
         ) : (
           <div className="project-image-placeholder" />
         )}

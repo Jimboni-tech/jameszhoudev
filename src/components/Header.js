@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaGithub, FaLinkedin, FaFileAlt } from 'react-icons/fa';
 
@@ -92,16 +92,35 @@ const Header = () => {
             <FaFileAlt />
           </a>
         </div>
-
-        <nav className="site-nav" aria-label="Main navigation">
-          <a href="#intro" className="nav-link" onClick={handleHome}>Home</a>
-          <a href="#about-section" className="nav-link" onClick={handleNavTo('about-section')}>About</a>
-          
-          <a href="#projects-section" className="nav-link" onClick={handleNavTo('projects-section')}>Projects</a>
-          <Link to="/blog" className="nav-link">Blog</Link>
-        </nav>
+        <MobileNav handleHome={handleHome} handleNavTo={handleNavTo} />
       </div>
     </header>
+  );
+};
+
+const MobileNav = ({ handleHome, handleNavTo }) => {
+  const [open, setOpen] = useState(false);
+
+  const toggle = () => setOpen((v) => !v);
+
+  return (
+    <>
+      <button
+        className="mobile-menu-button"
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-expanded={open}
+        onClick={toggle}
+      >
+        <span className={`hamburger ${open ? 'is-open' : ''}`} />
+      </button>
+
+      <nav className={`site-nav ${open ? 'open' : ''}`} aria-label="Main navigation">
+        <a href="#intro" className="nav-link" onClick={(e) => { setTimeout(() => setOpen(false), 0); handleHome(e); }}>Home</a>
+        <a href="#about-section" className="nav-link" onClick={(e) => { setTimeout(() => setOpen(false), 0); handleNavTo('about-section')(e); }}>About</a>
+        <a href="#projects-section" className="nav-link" onClick={(e) => { setTimeout(() => setOpen(false), 0); handleNavTo('projects-section')(e); }}>Projects</a>
+        <a href="/blog" className="nav-link" onClick={() => setOpen(false)}>Blog</a>
+      </nav>
+    </>
   );
 };
 
